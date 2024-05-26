@@ -1,0 +1,11 @@
+models/vosk*
+
+*.iml
+.idea/
+
+__pycache__/
+*.py[cod]
+
+.env
+
+.DS_Store

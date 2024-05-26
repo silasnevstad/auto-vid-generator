@@ -1,0 +1,12 @@
+certifi==2024.2.2
+cffi==1.16.0
+charset-normalizer==3.3.2
+idna==3.7
+pycparser==2.22
+python-dotenv==1.0.1
+requests==2.32.2
+srt==3.5.3
+tqdm==4.66.4
+urllib3==2.2.1
+vosk==0.3.44
+websockets==12.0
