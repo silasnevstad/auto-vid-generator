@@ -22,7 +22,7 @@ def generate_facts_video_with_background_topic(output_folder, topic=None):
     os.makedirs(output_path, exist_ok=True)
     os.makedirs(os.path.join(output_path, 'data'), exist_ok=True)
 
-    # Get script from GPT
+    # Get a script from GPT
     print("Step 0: Generating script")
     script = gpt.create_completion([fact_generator_prompt], tools=[fact_generator_tool], tool_argument="script")
     print(f"Generated script: {script}")
