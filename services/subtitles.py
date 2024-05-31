@@ -3,12 +3,12 @@ from datetime import timedelta
 
 class SubtitleGenerator:
     @staticmethod
-    def generate_ass(timestamps, output_path, font='Futura', font_size=30,
+    def generate_ass(timestamps, output_path, font='Futura', font_size=50,
                      primary_color='&H00F5F5F5', secondary_color='&H00F5F5F5',
                      outline_color='&H00000000', back_color='&H00000000', bold=-1,
                      italic=0, underline=0, strikeout=0, scale_x=100, scale_y=100,
                      spacing=0, angle=0, border_style=1, outline=3, shadow=2,
-                     alignment=2, margin_l=10, margin_r=10, margin_v=40, encoding=0):
+                     alignment=5, margin_l=10, margin_r=10, margin_v=40, encoding=0):
         # TODO: Group words into logical chunks
         header = f"""[Script Info]
 PlayResY: 600
@@ -32,6 +32,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         with open(output_path, 'w') as f:
             f.write(header + events)
+
+    @staticmethod
+    def subtitles_duration(timestamps):
+        datetime = timedelta(seconds=timestamps[-1]['end'])
+        return datetime.total_seconds()
 
     @staticmethod
     def format_time(t):
