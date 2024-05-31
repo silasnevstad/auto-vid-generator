@@ -1,14 +1,21 @@
 import praw
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 class Reddit:
-    def __init__(self, client_id, client_secret, password, user_agent, username):
+    def __init__(self, client_id=None, client_secret=None, password=None, user_agent=None, username=None):
+        if not all([client_id, client_secret]):
+            client_id = os.getenv('REDDIT_CLIENT_ID')
+            client_secret = os.getenv('REDDIT_CLIENT_SECRET')
+            user_agent = os.getenv('REDDIT_USER_AGENT')
+
         self.reddit = praw.Reddit(
             client_id=client_id,
             client_secret=client_secret,
-            password=password,
             user_agent=user_agent,
-            username=username
         )
 
     def get_top_posts(self, subreddit_name, limit=10, time_filter='day'):

@@ -1,3 +1,4 @@
+import os
 import openai
 import json
 
@@ -18,7 +19,6 @@ class GPT:
                 tools=tools,
                 tool_choice="auto" if tool_choice is None else {"type": "function", "function": {"name": tool_choice}}
             )
-            print(completion)
             return self.handle_completion(completion, tool_argument)
         except openai.APIConnectionError as e:
             print(f"Failed to connect to OpenAI API: {e}")
@@ -29,6 +29,16 @@ class GPT:
         except openai.RateLimitError as e:
             print(f"OpenAI API request exceeded rate limit: {e}")
             pass
+
+    def text_to_speech(self, text, output_path, voice='alloy', model='tts-1-hd'):
+        speech_file_path = os.path.join(output_path, 'data', 'speech.mp3')
+        response = self.client.audio.speech.create(
+            model=model,
+            voice=voice,
+            input=text
+        )
+        response.stream_to_file(speech_file_path)
+        return speech_file_path
 
     @staticmethod
     def make_chat_messages(messages, system_messages=None):
