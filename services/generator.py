@@ -8,24 +8,18 @@ from services.prompts import fact_generator_prompt, fact_generator_tool
 from services.gpt import GPT
 
 
-def generate_facts_video_with_background_topic(output_folder, topic=None):
+def generate_video_from_script(output_folder, script, topic=None):
     output_path = os.path.join("../data/output", output_folder)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    pexels = PexelsAPI()
     tts = ElevenLabsTTS()
+    pexels = PexelsAPI()
     transcriber = VoskTranscriber()
     editor = VideoEditor()
-    gpt = GPT()
 
     os.makedirs(output_path, exist_ok=True)
     os.makedirs(os.path.join(output_path, 'data'), exist_ok=True)
-
-    # Get a script from GPT
-    print("Step 0: Generating script")
-    script = gpt.create_completion([fact_generator_prompt], tools=[fact_generator_tool], tool_argument="script")
-    print(f"Generated script: {script}")
 
     # Step 1: Generate TTS audio
     print("Step 1: Generating TTS audio")
@@ -43,7 +37,6 @@ def generate_facts_video_with_background_topic(output_folder, topic=None):
     timestamps = transcriber.extract_timestamps(transcription_results)
     transcription_path = os.path.join(output_path, 'data', 'transcription.json')
     transcriber.save_transcription(transcription_results, transcription_path)
-    print(f"Successfully transcribed audio.")
 
     # Step 3: Generate subtitle file
     print("Step 3: Generating subtitle file")
@@ -55,7 +48,8 @@ def generate_facts_video_with_background_topic(output_folder, topic=None):
     # Step 4: Fetch stock video
     print("Step 4: Fetching stock video")
     video_path = os.path.join(output_path, 'data', 'video.mp4')
-    pexels.download_video(topic, video_path, min_duration=int(subtitles_duration) + 5)
+    pexels.download_video(topic if topic is not None else "nature", video_path,
+                          min_duration=int(subtitles_duration) + 5)
     print(f"Video downloaded to {video_path}")
 
     # Step 5: Combine video, audio, and subtitles
@@ -67,6 +61,24 @@ def generate_facts_video_with_background_topic(output_folder, topic=None):
         return
 
     print(f"Video generated successfully at {final_path}")
+
+
+def generate_facts_video_with_background_topic(output_folder, topic=None):
+    output_path = os.path.join("../data/output", output_folder)
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    gpt = GPT()
+
+    os.makedirs(output_path, exist_ok=True)
+    os.makedirs(os.path.join(output_path, 'data'), exist_ok=True)
+
+    # Get a script from GPT
+    print("Step 0: Generating script")
+    script = gpt.create_completion([fact_generator_prompt], tools=[fact_generator_tool], tool_argument="script")
+    print(f"Generated script: {script}")
+
+    generate_video_from_script(output_folder, script, topic)
 
 
 if __name__ == "__main__":
