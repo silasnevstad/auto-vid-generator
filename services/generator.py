@@ -8,8 +8,8 @@ from services.prompts import fact_generator_prompt, fact_generator_tool
 from services.gpt import GPT
 
 
-def generate_facts_video_with_background_topic(topic, name):
-    output_path = os.path.join("../data/output", name)
+def generate_facts_video_with_background_topic(output_folder, topic=None):
+    output_path = os.path.join("../data/output", output_folder)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
@@ -27,14 +27,8 @@ def generate_facts_video_with_background_topic(topic, name):
     script = gpt.create_completion([fact_generator_prompt], tools=[fact_generator_tool], tool_argument="script")
     print(f"Generated script: {script}")
 
-    # Step 1: Fetch stock video
-    print("Step 1: Fetching stock video")
-    video_path = os.path.join(output_path, 'data', 'video.mp4')
-    pexels.download_video(topic, video_path)
-    print(f"Video downloaded to {video_path}")
-
-    # Step 2: Generate TTS audio
-    print("Step 2: Generating TTS audio")
+    # Step 1: Generate TTS audio
+    print("Step 1: Generating TTS audio")
     audio_bytes, alignment = tts.generate_audio_with_timestamps(script)
     if not audio_bytes:
         print("Failed to generate TTS audio.")
@@ -43,20 +37,26 @@ def generate_facts_video_with_background_topic(topic, name):
     tts.save_audio(audio_bytes, audio_path)
     print(f"Audio generated successfully at {audio_path}")
 
-    # Step 3: Transcribe audio for subtitles
-    print("Step 3: Transcribing audio for subtitles")
+    # Step 2: Transcribe audio for subtitles
+    print("Step 2: Transcribing audio for subtitles")
     transcription_results = transcriber.transcribe_audio(audio_path)
     timestamps = transcriber.extract_timestamps(transcription_results)
     transcription_path = os.path.join(output_path, 'data', 'transcription.json')
     transcriber.save_transcription(transcription_results, transcription_path)
     print(f"Successfully transcribed audio.")
 
-    # Step 4: Generate subtitle file
-    print("Step 4: Generating subtitle file")
+    # Step 3: Generate subtitle file
+    print("Step 3: Generating subtitle file")
     subtitle_path = os.path.join(output_path, 'data', 'subtitles.ass')
     SubtitleGenerator.generate_ass(timestamps, subtitle_path)
     subtitles_duration = SubtitleGenerator.subtitles_duration(timestamps)
     print(f"Subtitles created successfully at {subtitle_path}, duration: {subtitles_duration}")
+
+    # Step 4: Fetch stock video
+    print("Step 4: Fetching stock video")
+    video_path = os.path.join(output_path, 'data', 'video.mp4')
+    pexels.download_video(topic, video_path, min_duration=int(subtitles_duration) + 5)
+    print(f"Video downloaded to {video_path}")
 
     # Step 5: Combine video, audio, and subtitles
     print("Step 5: Editing together short")
@@ -70,4 +70,4 @@ def generate_facts_video_with_background_topic(topic, name):
 
 
 if __name__ == "__main__":
-    generate_facts_video_with_background_topic("nature", "example")
+    generate_facts_video_with_background_topic("example", "nature drone shot fast")

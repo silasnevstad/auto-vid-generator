@@ -81,14 +81,34 @@ class PexelsAPI:
         self.__request(url)
         return None if not self.request else self.json
 
-    def download_video(self, query, output_path, orientation=None, size=None, locale=None, page=1, per_page=15):
-        videos = self.search_videos(query, orientation, size, locale, page, per_page)
-        if not videos:
-            print("No videos found.")
-            return
-        video_url = videos['videos'][0]['video_files'][0]['link']
+    def download_video(self, query, output_path,
+                       orientation=None, size=None, locale=None, min_duration=None, max_duration=None):
+        video = self.__get_video_with_criteria(query, orientation, size, locale, min_duration, max_duration)
+        if not video:
+            return None
         with open(output_path, 'wb+') as f:
-            f.write(requests.get(video_url).content)
+            f.write(requests.get(video.get("video_files")[0].get("link")).content)
+
+    def __get_video_with_criteria(self, query,
+                                  orientation=None, size=None, locale=None, min_duration=None, max_duration=None,
+                                  page=1, per_page=15):
+        while True:
+            videos = self.search_videos(query, orientation, size, locale, page, per_page)
+            if not videos:
+                return None
+            for video in videos['videos']:
+                if self.__ensure_video_length(video, min_duration, max_duration):
+                    return video
+            page += 1
+
+    @staticmethod
+    def __ensure_video_length(video, min_duration=None, max_duration=None):
+        duration = video.get("duration")
+        if min_duration and duration < min_duration:
+            return False
+        if max_duration and duration > max_duration:
+            return False
+        return True
 
     def __request(self, url, params=None):
         try:
